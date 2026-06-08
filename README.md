@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v3.2.0 | [`v3.2.0`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v3.2.0) | [`07976c6`](https://github.com/android-actions/setup-android/commit/07976c6290703d34c16d382cb36445f98bb43b1f) |
+| v4.0.1 | [`v4.0.1`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v4.0.1) | [`40fd30f`](https://github.com/android-actions/setup-android/commit/40fd30fb8d7440372e1316f5d1809ec01dcd3699) |
 
 ## Privacy
 
