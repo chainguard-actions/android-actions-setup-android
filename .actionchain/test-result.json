@@ -1,7 +1,5 @@
 {
   "ran": true,
   "passed": true,
-  "output": "\n\u003e setup-android@1.0.0 test\n\u003e jest\n\n(node:77) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS __tests__/matchers.test.ts\n  setup-android\n    ✓ has sanity (2 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        2.881 s\nRan all test suites.\n",
-  "duration_ms": 4081,
   "exit_code": 0
 }
