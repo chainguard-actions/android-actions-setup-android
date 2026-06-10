@@ -1,7 +1,5 @@
 {
   "ran": true,
   "passed": true,
-  "output": "\n\u003e setup-android@1.0.0 test\n\u003e jest\n\nPASS __tests__/matchers.test.ts\n  setup-android\n    ✓ has sanity (2 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.644 s\nRan all test suites.\n",
-  "duration_ms": 2356,
   "exit_code": 0
 }
