@@ -1,0 +1,41 @@
+name: Test setup-android with custom cmdline-tools-version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install Java 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends openjdk-17-jdk-headless
+          java -version
+      - id: setup-android
+        uses: .
+        with:
+          cmdline-tools-version: '10406996'
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: 'tools platform-tools'
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+      - name: Assert cmdline-tools directory exists
+        run: |
+          echo "Checking cmdline-tools directory under ANDROID_HOME=$ANDROID_HOME"
+          if [ ! -d "$ANDROID_HOME/cmdline-tools" ]; then
+            echo "FAIL: cmdline-tools directory not found at $ANDROID_HOME/cmdline-tools"
+            exit 1
+          fi
+          echo "PASS: cmdline-tools directory exists"
+          ls -la "$ANDROID_HOME/cmdline-tools"
+      - name: Assert sdkmanager is available
+        run: |
+          which sdkmanager || (echo "FAIL: sdkmanager not found in PATH" && exit 1)
+          echo "PASS: sdkmanager found at $(which sdkmanager)"

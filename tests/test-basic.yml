@@ -1,0 +1,49 @@
+name: Test basic Android SDK setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required for sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || sudo apt-get update -qq
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || sudo apt-get install -y -qq openjdk-17-jdk-headless
+          java -version
+
+      - id: setup-android
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'true'
+          packages: 'tools platform-tools'
+
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+
+      - name: Assert ANDROID_SDK_ROOT is set
+        run: |
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          if [ -z "$ANDROID_SDK_ROOT" ]; then
+            echo "FAIL: ANDROID_SDK_ROOT is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+      - name: Assert sdkmanager is available on PATH
+        run: |
+          which sdkmanager || (echo "FAIL: sdkmanager not found on PATH" && exit 1)
+          echo "PASS: sdkmanager found at $(which sdkmanager)"
+
+      - name: Assert adb is available on PATH
+        run: |
+          which adb || (echo "FAIL: adb not found on PATH" && exit 1)
+          echo "PASS: adb found at $(which adb)"

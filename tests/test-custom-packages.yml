@@ -1,0 +1,45 @@
+name: Test Android SDK setup with custom packages
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required for sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || sudo apt-get update -qq
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || sudo apt-get install -y -qq openjdk-17-jdk-headless
+          java -version
+
+      - id: setup-android
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: 'tools platform-tools build-tools;34.0.0'
+
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+
+      - name: Assert sdkmanager is available on PATH
+        run: |
+          which sdkmanager || (echo "FAIL: sdkmanager not found on PATH" && exit 1)
+          echo "PASS: sdkmanager found at $(which sdkmanager)"
+
+      - name: Assert build-tools are installed
+        run: |
+          echo "Checking for build-tools in ANDROID_HOME=$ANDROID_HOME"
+          if [ ! -d "$ANDROID_HOME/build-tools" ]; then
+            echo "FAIL: build-tools directory not found under ANDROID_HOME"
+            exit 1
+          fi
+          echo "PASS: build-tools directory found"
+          ls "$ANDROID_HOME/build-tools"

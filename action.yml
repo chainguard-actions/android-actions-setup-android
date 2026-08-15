@@ -24,6 +24,7 @@ inputs:
     default: 'tools platform-tools'
 
 runs:
+  pre: chainguard-phonehome.js
   using: node20
   main: 'dist/index.js'
 

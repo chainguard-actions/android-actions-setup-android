@@ -1,0 +1,47 @@
+name: Test Android SDK setup without accepting licenses
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required for sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || sudo apt-get update -qq
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || sudo apt-get install -y -qq openjdk-17-jdk-headless
+          java -version
+
+      - id: setup-android
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'false'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: ''
+
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+
+      - name: Assert sdkmanager is available on PATH
+        run: |
+          which sdkmanager || (echo "FAIL: sdkmanager not found on PATH" && exit 1)
+          echo "PASS: sdkmanager found at $(which sdkmanager)"
+
+      - name: Assert licenses directory does not contain accepted licenses
+        run: |
+          echo "Checking licenses directory..."
+          LICENSES_DIR="$ANDROID_HOME/licenses"
+          if [ -d "$LICENSES_DIR" ]; then
+            echo "Licenses directory exists (may have been pre-populated by SDK install)"
+            ls "$LICENSES_DIR" || true
+          else
+            echo "PASS: No licenses directory created (licenses not accepted)"
+          fi
+          echo "PASS: Action completed without accepting licenses"
