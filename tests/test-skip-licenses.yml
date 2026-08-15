@@ -1,0 +1,54 @@
+name: Test Android SDK setup without accepting licenses
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install Java (required by sdkmanager)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openjdk-17-jdk-headless
+          java -version
+      - id: setup-android
+        name: Setup Android SDK without accepting licenses
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'false'
+          packages: ''
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert ANDROID_SDK_ROOT is set
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          if [ -z "$ANDROID_SDK_ROOT" ]; then
+            echo "FAIL: ANDROID_SDK_ROOT is not set"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert cmdline-tools are installed
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          CMDLINE_TOOLS_DIR="$ANDROID_HOME/cmdline-tools"
+          echo "Checking cmdline-tools at: $CMDLINE_TOOLS_DIR"
+          if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
+            echo "FAIL: cmdline-tools directory not found at $CMDLINE_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: cmdline-tools directory exists"
+      - name: Assert sdkmanager is available
+        run: |
+          echo "Checking sdkmanager..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "sdkmanager found at: $(command -v sdkmanager)"
+          echo "PASS"

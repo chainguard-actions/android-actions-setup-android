@@ -1,0 +1,55 @@
+name: Test setup-android with custom cmdline-tools version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install Java (required for sdkmanager)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends openjdk-17-jdk-headless
+          java -version
+      - id: action
+        uses: .
+        with:
+          cmdline-tools-version: '10406996'
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'true'
+          packages: 'tools platform-tools'
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+      - name: Assert cmdline-tools directory exists
+        run: |
+          CMDLINE_TOOLS_DIR="$ANDROID_HOME/cmdline-tools"
+          echo "Checking cmdline-tools dir: $CMDLINE_TOOLS_DIR"
+          if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
+            echo "FAIL: cmdline-tools directory not found at $CMDLINE_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: cmdline-tools directory exists"
+          ls -la "$CMDLINE_TOOLS_DIR"
+      - name: Assert sdkmanager is available on PATH
+        run: |
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+      - name: Assert ANDROID_COMMANDLINE_TOOLS_VERSION output
+        env:
+          ACTUAL: ${{ steps.action.outputs.ANDROID_COMMANDLINE_TOOLS_VERSION }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "10406996" ]; then
+            echo "FAIL: expected ANDROID_COMMANDLINE_TOOLS_VERSION to be '10406996', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: ANDROID_COMMANDLINE_TOOLS_VERSION=$ACTUAL"

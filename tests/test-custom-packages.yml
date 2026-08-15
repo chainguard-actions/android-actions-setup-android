@@ -1,0 +1,56 @@
+name: Test Android SDK setup with custom packages
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install Java (required by sdkmanager)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openjdk-17-jdk-headless
+          java -version
+      - id: setup-android
+        name: Setup Android SDK with custom packages
+        uses: .
+        with:
+          packages: 'tools platform-tools'
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'true'
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert sdkmanager is available
+        run: |
+          echo "Checking sdkmanager..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "sdkmanager found at: $(command -v sdkmanager)"
+          echo "PASS"
+      - name: Assert platform-tools directory exists
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          PLATFORM_TOOLS_DIR="$ANDROID_HOME/platform-tools"
+          echo "Checking platform-tools at: $PLATFORM_TOOLS_DIR"
+          if [ ! -d "$PLATFORM_TOOLS_DIR" ]; then
+            echo "FAIL: platform-tools directory not found at $PLATFORM_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: platform-tools directory exists"
+      - name: Assert adb is available
+        run: |
+          echo "Checking adb..."
+          if ! command -v adb &>/dev/null; then
+            echo "FAIL: adb not found on PATH"
+            exit 1
+          fi
+          echo "adb version: $(adb version)"
+          echo "PASS"
