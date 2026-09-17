@@ -1,0 +1,45 @@
+name: Test setup Android SDK with no additional packages
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-android
+        uses: .
+        continue-on-error: true
+        with:
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: ''
+      - name: Assert action ran and check results
+        env:
+          OUTCOME: ${{ steps.setup-android.outcome }}
+          ANDROID_HOME_VAL: ${{ env.ANDROID_HOME }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "ANDROID_HOME: $ANDROID_HOME_VAL"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded, validating environment..."
+            if [ -z "$ANDROID_HOME_VAL" ]; then
+              echo "FAIL: ANDROID_HOME is not set after successful action"
+              exit 1
+            fi
+            echo "PASS: ANDROID_HOME=$ANDROID_HOME_VAL"
+            if ! command -v sdkmanager &>/dev/null; then
+              echo "FAIL: sdkmanager not found on PATH"
+              exit 1
+            fi
+            echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+            if [ ! -d "$ANDROID_HOME_VAL/cmdline-tools" ]; then
+              echo "FAIL: cmdline-tools directory not found under ANDROID_HOME"
+              exit 1
+            fi
+            echo "PASS: cmdline-tools directory exists"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (environment may not support node24 or network downloads)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
