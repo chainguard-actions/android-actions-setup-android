@@ -14,6 +14,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v4.0.1 | [`v4.0.1`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v4.0.1) | [`40fd30f`](https://github.com/android-actions/setup-android/commit/40fd30fb8d7440372e1316f5d1809ec01dcd3699) |
 | v4.0.2 | [`v4.0.2`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v4.0.2) | [`7731365`](https://github.com/android-actions/setup-android/commit/7731365548f3f81c15d4c49c8f1d29101e02cdcf) |
 | v4.0.3 | [`v4.0.3`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v4.0.3) | [`138b5fb`](https://github.com/android-actions/setup-android/commit/138b5fb1cf087fdb4c5f3c621466fe304d0cf2e3) |
+| v4.0.4 | [`v4.0.4`](https://github.com/chainguard-actions/android-actions-setup-android/tree/v4.0.4) | [`be39fa8`](https://github.com/android-actions/setup-android/commit/be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd) |
 
 ## Privacy
 
