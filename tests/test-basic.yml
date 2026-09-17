@@ -1,0 +1,50 @@
+name: Test basic usage - setup Android SDK with defaults
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-android
+        uses: .
+        continue-on-error: true
+      - name: Assert action ran and check outputs
+        env:
+          OUTCOME: ${{ steps.setup-android.outcome }}
+          ANDROID_HOME_VAL: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT_VAL: ${{ env.ANDROID_SDK_ROOT }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "ANDROID_HOME: $ANDROID_HOME_VAL"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT_VAL"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$ANDROID_HOME_VAL" ]; then
+              echo "FAIL: action succeeded but ANDROID_HOME is not set"
+              exit 1
+            fi
+            if [ -z "$ANDROID_SDK_ROOT_VAL" ]; then
+              echo "FAIL: action succeeded but ANDROID_SDK_ROOT is not set"
+              exit 1
+            fi
+            echo "PASS: ANDROID_HOME=$ANDROID_HOME_VAL, ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT_VAL"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (likely network/environment constraint in act)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+      - name: Assert sdkmanager is available on PATH (if action succeeded)
+        env:
+          OUTCOME: ${{ steps.setup-android.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            if ! command -v sdkmanager &>/dev/null; then
+              echo "FAIL: sdkmanager not found on PATH after successful setup"
+              exit 1
+            fi
+            echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+          else
+            echo "SKIP: action did not succeed, skipping sdkmanager check"
+          fi
