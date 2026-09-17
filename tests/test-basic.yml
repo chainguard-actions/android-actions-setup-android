@@ -1,0 +1,72 @@
+name: Test basic usage (default inputs)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required by sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || true
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || \
+          apt-get install -y -qq default-jdk-headless 2>/dev/null || \
+          (which java && echo "Java already available") || \
+          echo "WARNING: could not install Java"
+          java -version 2>&1 || true
+
+      - id: setup-android
+        name: Setup Android SDK with defaults
+        uses: .
+
+      - name: Assert sdkmanager is on PATH
+        run: |
+          echo "Checking sdkmanager..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+
+      - name: Assert adb is on PATH (platform-tools default package)
+        run: |
+          echo "Checking adb..."
+          if ! command -v adb &>/dev/null; then
+            echo "FAIL: adb not found on PATH (platform-tools should be installed by default)"
+            exit 1
+          fi
+          echo "PASS: adb found at $(command -v adb)"
+
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          if [ ! -d "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME directory does not exist: $ANDROID_HOME"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+
+      - name: Assert ANDROID_SDK_ROOT is set
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          if [ -z "$ANDROID_SDK_ROOT" ]; then
+            echo "FAIL: ANDROID_SDK_ROOT is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+      - name: Assert cmdline-tools version output
+        env:
+          VERSION: ${{ steps.setup-android.outputs.ANDROID_COMMANDLINE_TOOLS_VERSION }}
+        run: |
+          echo "ANDROID_COMMANDLINE_TOOLS_VERSION=$VERSION"
+          if [ -z "$VERSION" ]; then
+            echo "FAIL: ANDROID_COMMANDLINE_TOOLS_VERSION output is empty"
+            exit 1
+          fi
+          echo "PASS: version=$VERSION"

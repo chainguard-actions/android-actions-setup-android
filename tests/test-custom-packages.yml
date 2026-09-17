@@ -1,0 +1,54 @@
+name: Test custom packages installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required by sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || true
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || \
+          apt-get install -y -qq default-jdk-headless 2>/dev/null || \
+          (which java && echo "Java already available") || \
+          echo "WARNING: could not install Java"
+          java -version 2>&1 || true
+
+      - id: setup-android
+        name: Setup Android SDK with custom packages
+        uses: .
+        with:
+          packages: 'platform-tools build-tools;35.0.0'
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'true'
+
+      - name: Assert sdkmanager is on PATH
+        run: |
+          echo "Checking sdkmanager..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+
+      - name: Assert adb is on PATH (platform-tools)
+        run: |
+          echo "Checking adb..."
+          if ! command -v adb &>/dev/null; then
+            echo "FAIL: adb not found on PATH"
+            exit 1
+          fi
+          echo "PASS: adb found at $(command -v adb)"
+
+      - name: Assert build-tools are installed
+        run: |
+          echo "Checking build-tools..."
+          BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools"
+          if [ ! -d "$BUILD_TOOLS_DIR" ]; then
+            echo "FAIL: build-tools directory not found at $BUILD_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: build-tools directory found at $BUILD_TOOLS_DIR"
+          ls "$BUILD_TOOLS_DIR"

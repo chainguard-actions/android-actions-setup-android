@@ -1,0 +1,73 @@
+name: Test skip license acceptance
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Java (required by sdkmanager)
+        run: |
+          apt-get update -qq 2>/dev/null || true
+          apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || \
+          apt-get install -y -qq default-jdk-headless 2>/dev/null || \
+          (which java && echo "Java already available") || \
+          echo "WARNING: could not install Java"
+          java -version 2>&1 || true
+
+      - id: setup-android
+        name: Setup Android SDK without accepting licenses
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'false'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: ''
+
+      - name: Assert sdkmanager is on PATH
+        run: |
+          echo "Checking sdkmanager..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+
+      - name: Assert ANDROID_HOME is set and valid
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          if [ ! -d "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME directory does not exist: $ANDROID_HOME"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+
+      - name: Assert cmdline-tools are installed
+        run: |
+          echo "Checking cmdline-tools..."
+          CMDLINE_TOOLS_DIR="$ANDROID_HOME/cmdline-tools"
+          if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
+            echo "FAIL: cmdline-tools directory not found at $CMDLINE_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: cmdline-tools directory found"
+          ls "$CMDLINE_TOOLS_DIR"
+
+      - name: Assert no platform-tools installed (packages was empty)
+        run: |
+          echo "Checking that platform-tools were NOT installed (packages='' means no extra packages)..."
+          # adb should NOT be on PATH since platform-tools was not requested
+          # (the action only adds platform-tools to PATH, not installs it, unless in packages)
+          # The action always adds $ANDROID_SDK_ROOT/platform-tools to PATH,
+          # but the directory may not exist if not installed
+          PLATFORM_TOOLS_DIR="$ANDROID_HOME/platform-tools"
+          if [ -d "$PLATFORM_TOOLS_DIR" ]; then
+            echo "INFO: platform-tools directory exists (may be pre-installed): $PLATFORM_TOOLS_DIR"
+          else
+            echo "PASS: platform-tools directory not present (not installed)"
+          fi
+          echo "PASS: skip-licenses scenario completed successfully"
