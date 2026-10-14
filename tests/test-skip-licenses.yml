@@ -1,0 +1,41 @@
+name: Test skip license acceptance
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          accept-android-sdk-licenses: 'false'
+          log-accepted-android-sdk-licenses: 'false'
+          packages: ''
+      - name: Assert sdkmanager is on PATH
+        run: |
+          echo "Checking sdkmanager availability..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+      - name: Assert cmdline-tools directory exists
+        run: |
+          echo "Checking cmdline-tools directory..."
+          CMDLINE_TOOLS_DIR="$ANDROID_HOME/cmdline-tools"
+          echo "CMDLINE_TOOLS_DIR: $CMDLINE_TOOLS_DIR"
+          if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
+            echo "FAIL: cmdline-tools directory not found at $CMDLINE_TOOLS_DIR"
+            exit 1
+          fi
+          echo "PASS: cmdline-tools directory exists"
+          ls -la "$CMDLINE_TOOLS_DIR"

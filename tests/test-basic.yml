@@ -1,0 +1,64 @@
+name: Test basic usage - setup Android SDK with defaults
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_JDK_VERSION_CHECK: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install Java 17 (required by sdkmanager 16.0+)
+        run: |
+          apt-get update -qq && apt-get install -y -qq openjdk-17-jdk-headless 2>/dev/null || \
+          apt-get install -y -qq default-jdk-headless 2>/dev/null || true
+          # Set JAVA_HOME to JDK 17 if available
+          if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
+            echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> "$GITHUB_ENV"
+            echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> "$GITHUB_PATH"
+          else
+            JAVA_BIN=$(command -v java 2>/dev/null || true)
+            if [ -n "$JAVA_BIN" ]; then
+              JAVA_HOME_DIR=$(dirname $(dirname $(readlink -f "$JAVA_BIN")))
+              echo "JAVA_HOME=$JAVA_HOME_DIR" >> "$GITHUB_ENV"
+            fi
+          fi
+          java -version || echo "WARNING: java still not found"
+      - id: action
+        uses: .
+        with:
+          # 'tools' package is deprecated/removed from the Android SDK repository.
+          # Override packages to use only valid packages.
+          packages: 'platform-tools'
+      - name: Assert sdkmanager is on PATH
+        run: |
+          echo "Checking sdkmanager availability..."
+          if ! command -v sdkmanager &>/dev/null; then
+            echo "FAIL: sdkmanager not found on PATH"
+            exit 1
+          fi
+          echo "PASS: sdkmanager found at $(command -v sdkmanager)"
+      - name: Assert ANDROID_HOME is set
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "FAIL: ANDROID_HOME is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_HOME=$ANDROID_HOME"
+      - name: Assert ANDROID_SDK_ROOT is set
+        run: |
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          if [ -z "$ANDROID_SDK_ROOT" ]; then
+            echo "FAIL: ANDROID_SDK_ROOT is not set"
+            exit 1
+          fi
+          echo "PASS: ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+      - name: Assert platform-tools installed (adb available)
+        run: |
+          echo "Checking adb availability..."
+          if ! command -v adb &>/dev/null; then
+            echo "FAIL: adb not found on PATH (platform-tools not installed)"
+            exit 1
+          fi
+          echo "PASS: adb found at $(command -v adb)"
