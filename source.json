@@ -4,8 +4,13 @@
   "version": "v4.0.4",
   "commit_sha": "be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd",
   "url": "https://github.com/android-actions/setup-android",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/android-actions/setup-android/v4.0.4/sha256-60ef70c00d5adb9048ab333a4e9a2afd8a6e9a39b23264e88ab8c11bdeeba71f.tar.gz",
+    "sha256": "60ef70c00d5adb9048ab333a4e9a2afd8a6e9a39b23264e88ab8c11bdeeba71f",
+    "size_bytes": 205431
+  }
 }
